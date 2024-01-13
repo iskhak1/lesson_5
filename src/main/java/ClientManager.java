@@ -44,14 +44,43 @@ public class ClientManager implements Runnable {
         broadcastMessage("Server: " +name+" leave chat");
     }
 
-    private void broadcastMessage(String mesageToSend) {
+    private void broadcastMessage(String message) {
+
         for(ClientManager client: clients){
             try{
-                if(!client.name.equals(name)){
-                    client.bufferedWriter.write(mesageToSend);
+
+                //group chat
+                    if(!client.name.equals(name) ){
+                    client.bufferedWriter.write(message);
                     client.bufferedWriter.newLine();
                     client.bufferedWriter.flush();
+
                 }
+            } catch (IOException e) {
+                closeEverything(socket,bufferedWriter,bufferedReader);
+            }
+        }
+    }
+
+    private void privateMessage(String message) {
+        String[] messages = message.split(" ");
+        StringBuilder messageToSend = new StringBuilder();
+        StringBuilder nick = new StringBuilder();
+        for (int i = 1; i < messages[1].split("").length; i++) {
+            nick.append(messages[1].split("")[i]);
+        }
+        for (int i = 2; i < messages.length; i++) {
+            messageToSend.append(messages[i] + " ");
+        }
+
+        for(ClientManager client: clients){
+            try{
+                //private chat
+                    if(!client.name.equals(name) && messages[1].split("")[0].startsWith("@") && client.name.equals(nick.toString())) {
+                        client.bufferedWriter.write(messages[0] + " " + messageToSend.toString());
+                        client.bufferedWriter.newLine();
+                        client.bufferedWriter.flush();
+                    }
             } catch (IOException e) {
                 closeEverything(socket,bufferedWriter,bufferedReader);
             }
@@ -65,7 +94,13 @@ public class ClientManager implements Runnable {
         while(socket.isConnected()){
             try{
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                if(messageFromClient.split(" ")[1].split("")[0].startsWith("@")){
+                    System.out.println("Private Chat "+messageFromClient.split(" ")[1].split("")[0]);
+                    privateMessage(messageFromClient);
+                }else {
+                    System.out.println("Message for all " + messageFromClient.split(" ")[1].split("")[0]);
+                    broadcastMessage(messageFromClient);
+                }
             } catch (IOException e) {
                 closeEverything(socket,bufferedWriter,bufferedReader);
                 break;

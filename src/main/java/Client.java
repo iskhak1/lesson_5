@@ -53,6 +53,7 @@ public class Client {
         }).start();
     }
 
+
     private void closeEverything(Socket socket, BufferedWriter bufferedWriter, BufferedReader bufferedReader) {
         try{
             if(bufferedReader != null){
@@ -68,6 +69,8 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
